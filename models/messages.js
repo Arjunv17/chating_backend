@@ -15,10 +15,15 @@ const MessageSchema = new mongoose.Schema({
 // Create Message model
 const Message = mongoose.model('messages', MessageSchema);
 
-const createIndexes = async () => {
-    await Message.collection.createIndex({ conversation_id: 1 });
-    await Message.collection.createIndex({ sender_id: 1 });
-    await Message.collection.createIndex({ createdAt: 1 });
+// Create Message Indexes
+const createMessageIndexes = async () => {
+    try {
+        await Message.collection.createIndex({ conversation_id: 1 });
+        await Message.collection.createIndex({ sender_id: 1 });
+        await Message.collection.createIndex({ createdAt: 1 });
+    } catch (error) {
+        console.error("Error creating Message indexes:", error);
+    }
 };
 
-module.exports = { Message, createIndexes };
+module.exports = { Message, createMessageIndexes };

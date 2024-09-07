@@ -35,7 +35,7 @@ const saveUser = async (req, res) => {
 
         // Create new user
         const newUser = new userModel({
-            first_name, last_name, email, phone_number, profile_image:profileImage, hashPassword
+            first_name, last_name, email, phone_number, profile_image:profileImage, password:hashPassword
         })
         // Save response
         let saveRes = await newUser.save();
@@ -81,7 +81,6 @@ const login = async (req, res) => {
 // Get User
 const getalluser = async (req, res) => {
     try {
-        
         // Find All Users
         const allUsers = await findAll(userModel,{});
         if (!allUsers) {

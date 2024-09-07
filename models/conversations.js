@@ -7,16 +7,20 @@ const ConversationSchema = new mongoose.Schema({
     // group_name: { type: String, required: false }, // Optional, for group conversations
     // is_group: { type: Boolean, default: false }, // Indicates if the conversation is a group chat
 },
-{ timestamps: true, versionKey: false } // Automatically adds createdAt and updatedAt fields
+    { timestamps: true, versionKey: false } // Automatically adds createdAt and updatedAt fields
 );
 
 // Create Conversation model
 const Conversation = mongoose.model('conversations', ConversationSchema);
 
-// Create Indexes
-const createIndexes = async () => {
-    await Conversation.collection.createIndex({ participants: 1 });
-    await Conversation.collection.createIndex({ createdAt: 1 });
+// Create Conversation Indexes
+const createConversationIndexes = async () => {
+    try {
+        await Conversation.collection.createIndex({ participants: 1 });
+        await Conversation.collection.createIndex({ createdAt: 1 });
+    } catch (error) {
+        console.error("Error creating Conversation indexes:", error);
+    }
 };
 
-module.exports = { Conversation, createIndexes };
+module.exports = { Conversation, createConversationIndexes };

@@ -10,7 +10,7 @@ const authentication = async (req, res, next) => {
             let tokenVerify = await verifyToken(token);
             if (tokenVerify) {
                 if ((tokenVerify.Role === 'admin') || (tokenVerify.Role === 'user')) {
-                    req.body = tokenVerify;
+                    req.user = tokenVerify;
                     next()
                 } else {
                     return errorResponse(res, 404, { message: `Unauthorized!!` })

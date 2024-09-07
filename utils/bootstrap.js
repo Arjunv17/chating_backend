@@ -6,23 +6,26 @@ const { successResponse, errorResponse } = require('./response');
 // This function does not need req or res
 const bootstrapAdmin = async () => {
     try {
+        let myPassword = 'arjun@123';
+        let email= "arjun@yopmail.com";
         // Check if an admin already exists
-        let user = await userModel.findOne({ role: 'admin' });
+        let user = await userModel.findOne({ email });
         if (user) {
             console.log('Admin already exists!');
             return;
         }
-        let myPassword = 'arjun@123'
+        
         let hashPass = await createHashPass(myPassword)
         // Prepare admin data
         let adminData = {
             first_name: "Arjun",
             last_name: "Verma",
-            email: "arjun@yopmail.com",
+            email: email,
             phone_number: 1234567895,
             profile_image: null,
-            role: 'admin',
-            password: hashPass
+            role: 'user',
+            password: hashPass,
+            status:'offline'
         };
 
         // Create a new user instance and save it
