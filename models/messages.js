@@ -1,13 +1,14 @@
+const { required } = require('joi');
 const mongoose = require('mongoose');
 
 // Create Message Schema
 const MessageSchema = new mongoose.Schema({
     sender_id: { type: mongoose.Types.ObjectId, ref: 'users', required: true },
-    recipient_id: { type: mongoose.Types.ObjectId, ref: 'users', required: true },
-    conversation_id: { type: mongoose.Types.ObjectId, ref: 'conversations', required: true },
+    receiver_id: { type: mongoose.Types.ObjectId, ref: 'users', required: true },
+    conversation_id: { type: mongoose.Types.ObjectId, ref: 'conversations', required: false },
     message: { type: String, required: true },
     attachments: { type: Array, required: false },
-    status: { type: String, enum: ['sent', 'delivered', 'seen'], default: 'sent' }
+    status: { type: String, enum: ['sent', 'delivered', 'seen'], default: 'sent', required: true }
 },
     { timestamps: true, versionKey: false }
 );

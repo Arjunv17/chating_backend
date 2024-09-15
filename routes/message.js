@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const  upload  = require('../middlewares/multer')
-const { sentMessage } = require('../controllers/message');
+const { sentMessage, getMessage } = require('../controllers/message');
 const authentication = require('../middlewares/auth');
+const upload = require('../middlewares/multer');
 
 // Message Routes
-router.post('/sent_message', upload.array('attachments'),authentication, sentMessage);
+router.post('/sent_message', upload.array('attachments'), authentication, sentMessage);
+router.get('/get_message', authentication, getMessage);
 
-module.exports = router; // Corrected export
+module.exports = router;

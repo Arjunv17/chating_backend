@@ -2,7 +2,7 @@ const JWT = require('jsonwebtoken');
 
 
 const createToken = async (data, expireTime) => {
-  return await JWT.sign({ id: data._id, Role: data.role }, process.env.JWTSECRET, { expiresIn: expireTime })
+  return await JWT.sign({ id: data._id, role: data.role }, process.env.JWTSECRET, { expiresIn: expireTime })
 }
 
 const verifyToken = async (data)=>{

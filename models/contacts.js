@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ContactSchema = new mongoose.Schema({
     name: { type: String, require: true, default: '' },
-    phone_number: { type: Number, require: true, default: '' },
+    phone_number: { type: String, require: true, default: '' },
     user_id: { type: mongoose.Types.ObjectId, ref:'users' , require: true, default: '' },
     is_blocked: { type: Boolean, default: false },
 },

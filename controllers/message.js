@@ -1,51 +1,85 @@
 // Add Models
-const { findOne, createHashPass, comparePass, findAll } = require('../helpers');
-const messageModel = require('../models/messages');
-const { createToken } = require('../utils/jwt');
+const io = require('../server');
+const { Message } = require('../models/messages');
+const { Conversation } = require('../models/conversations');
 const { successResponse, errorResponse } = require('../utils/response');
-const { validateUser, validateEmailPass } = require('../validations/user');
+const { validateMessage } = require('../validations/message');
+const { findOne, findAll } = require('../helpers');
 
 // Sent Messages to User 
 const sentMessage = async (req, res) => {
-    const { sender_id, recipient_id, conversation_id, message , status} = req.body;
     try {
+        const { receiver_id, message } = req.body;
+        // Get User ID by Token
+        const userId = req.user ? req.user.id : null;
+
         // Image File
-        let attachmentsFiles = req.files;
-        console.log(attachmentsFiles)
-        // // Validate User
-        // const userValidation = validateUser({ first_name, last_name, email, phone_number ,password});
-        // if (userValidation.error) {
-        //     return errorResponse(res, 404, userValidation.error.message)
-        // }
-        
-        // // Check if email already exists
-        // const emailExists = await findOne(userModel,{ email });
-        // if (emailExists) {
-        //     return errorResponse(res, 400, 'Email already exists!!');
-        // }
+        let attachmentFiles = req.files;
+        let fileArr = [];
+        attachmentFiles?.map((value) => fileArr.push(value?.originalname));
 
-        // // Check if phone number already exists
-        // const phoneExists = await findOne(userModel,{ phone_number });
-        // if (phoneExists) {
-        //     return errorResponse(res, 400, 'Phone Number already exists!!');
-        // }
-        
-        // // Hash password
-        // let hashPassword = await createHashPass(password)
+        // Validate Messages
+        const messageValidation = validateMessage({ receiver_id, message });
+        if (messageValidation.error) {
+            return errorResponse(res, 404, messageValidation.error.message)
+        }
+        // Find existing conversation or create a new one
+        let conversation = await findOne(Conversation, {
+            participants: { $all: [userId, receiver_id] }
+        });
 
-        // // Create new user
-        // const newUser = new userModel({
-        //     first_name, last_name, email, phone_number, profile_image:profileImage, hashPassword
-        // })
-        // // Save response
-        // let saveRes = await newUser.save();
-        // return successResponse(res, 200 , saveRes)
+        // Create new conversation
+        if (!conversation) {
+            conversation = new Conversation({ participants: [userId, receiver_id] });
+            await conversation.save();
+        }
 
+        // Create a new message
+        const newMessage = new Message({
+            sender_id: userId,
+            receiver_id,
+            conversation_id: conversation._id,
+            message,
+            status: 'sent',
+            attachments: fileArr
+        });
+        await newMessage.save();
+
+        // Update last message in the conversation
+        conversation.last_message = newMessage._id;
+        await conversation.save();
+
+        return successResponse(res, 201, newMessage);
     } catch (error) {
-        return errorResponse(res, 500, `Internal Server Error ${error.message}`)
+        console.error(error);
+        return errorResponse(res, 500, `Internal Server Error ${error.message}`);
     }
 }
 
+// Get Messages
+const getMessage = async (req, res) => {
+    try {
+        const { conversationId } = req.query;
+        // Fetch messages that match the conversation ID
+        const messages = await findAll(Message,{ conversation_id: conversationId }) // Use .find() instead of findAll
+            .sort({ createdAt: 1 }) // Sort by timestamp in ascending order
+            .exec();
+
+        // If no messages found, return a 404 response
+        if (!messages || messages.length === 0) {
+            return errorResponse(res, 404, 'No messages found for this conversation.');
+        }
+
+        return successResponse(res, 200, messages);
+
+    } catch (error) {
+        console.error(error);
+        return errorResponse(res, 500, `Internal Server Error ${error.message}`);
+    }
+}
+
+
 module.exports = {
-    sentMessage
+    sentMessage,
+    getMessage
 }

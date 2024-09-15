@@ -9,7 +9,7 @@ const authentication = async (req, res, next) => {
         } else {
             let tokenVerify = await verifyToken(token);
             if (tokenVerify) {
-                if ((tokenVerify.Role === 'admin') || (tokenVerify.Role === 'user')) {
+                if ((tokenVerify.role === 'user')) {
                     req.user = tokenVerify;
                     next()
                 } else {
