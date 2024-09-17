@@ -61,7 +61,7 @@ const getMessage = async (req, res) => {
     try {
         const { conversationId } = req.query;
         // Fetch messages that match the conversation ID
-        const messages = await findAll(Message,{ conversation_id: conversationId }) // Use .find() instead of findAll
+        const messages = await findAll(Message, { conversation_id: conversationId }) // Use .find() instead of findAll
             .sort({ createdAt: 1 }) // Sort by timestamp in ascending order
             .exec();
 
