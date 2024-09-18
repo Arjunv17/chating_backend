@@ -60,10 +60,14 @@ const getConversation = async (req, res) => {
                 }
             },
             {
-                // Use $ifNull to check if lastMessage exists, otherwise use the second participant
+                // Determine the other participant based on the logged-in user
                 $addFields: {
                     actualReceiverId: {
-                        $ifNull: ['$lastMessage.receiver_id', { $arrayElemAt: ['$participants', 1] }]
+                        $cond: [
+                            { $eq: [{ $arrayElemAt: ['$participants', 0] }, new mongoose.Types.ObjectId(userId)] },
+                            { $arrayElemAt: ['$participants', 1] }, // If logged in user is the first participant, pick the second
+                            { $arrayElemAt: ['$participants', 0] }  // Otherwise, pick the first
+                        ]
                     }
                 }
             },
@@ -81,6 +85,21 @@ const getConversation = async (req, res) => {
                     preserveNullAndEmptyArrays: true // Preserve conversations with no receiver details
                 }
             },
+            // Add lookup to get contact details by phone number
+            {
+                $lookup: {
+                    from: 'contacts', // Assuming the collection name is 'contacts'
+                    localField: 'receiverDetails.phone_number', // The phone number from receiver details
+                    foreignField: 'phone_number', // The phone number field in the contacts collection
+                    as: 'contactDetails'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$contactDetails',
+                    preserveNullAndEmptyArrays: true // Preserve conversations with no matching contacts
+                }
+            },
             {
                 $project: {
                     _id: 1,
@@ -92,14 +111,22 @@ const getConversation = async (req, res) => {
                         receiver_id: 1,
                         sender_id: 1,
                         createdAt: 1,
-                        conversation_id:1
+                        conversation_id: 1
                     },
                     receiverDetails: {
                         _id: 1,
                         first_name: 1,
                         last_name: 1,
                         profile_image: 1,
-                        status: 1
+                        status: 1,
+                        phone_number: 1
+                    },
+                    // Add contact details in the response
+                    contactDetails: {
+                        _id: 1,
+                        name: 1, // Assuming the contact has a 'name' field
+                        phone_number: 1,
+                        user_id: 1
                     }
                 }
             },
@@ -114,6 +141,7 @@ const getConversation = async (req, res) => {
         return errorResponse(res, 500, `Internal Server Error ${error.message}`);
     }
 };
+
 
 module.exports = {
     save,

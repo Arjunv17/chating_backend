@@ -9,7 +9,7 @@ const { findOne, findAll } = require('../helpers');
 // Sent Messages to User 
 const sentMessage = async (req, res) => {
     try {
-        const { receiver_id, message } = req.body;
+        const { sender_id,receiver_id, message } = req.body;
         // Get User ID by Token
         const userId = req.user ? req.user.id : null;
 
@@ -19,24 +19,24 @@ const sentMessage = async (req, res) => {
         attachmentFiles?.map((value) => fileArr.push(value?.originalname));
 
         // Validate Messages
-        const messageValidation = validateMessage({ receiver_id, message });
+        const messageValidation = validateMessage({ sender_id,receiver_id, message });
         if (messageValidation.error) {
             return errorResponse(res, 404, messageValidation.error.message)
         }
         // Find existing conversation or create a new one
         let conversation = await findOne(Conversation, {
-            participants: { $all: [userId, receiver_id] }
+            participants: { $all: [sender_id, receiver_id] }
         });
 
         // Create new conversation
         if (!conversation) {
-            conversation = new Conversation({ participants: [userId, receiver_id] });
+            conversation = new Conversation({ participants: [sender_id, receiver_id] });
             await conversation.save();
         }
 
         // Create a new message
         const newMessage = new Message({
-            sender_id: userId,
+            sender_id: sender_id,
             receiver_id,
             conversation_id: conversation._id,
             message,
@@ -66,7 +66,7 @@ const getMessage = async (req, res) => {
             .exec();
 
         // If no messages found, return a 404 response
-        if (!messages || messages.length === 0) {
+        if (!messages) {
             return errorResponse(res, 404, 'No messages found for this conversation.');
         }
 

@@ -17,6 +17,23 @@ const setupSocket = (io) => {
                 io.to(receiverSocket).emit('receiveMessage', messageData);
             }
         });
+        socket.on('messageSent', (message, callback) => {
+            console.log('Custom event messageSent received:', message);
+            // Broadcast the message to other clients or update the conversation thread
+            socket.broadcast.emit('messageSent', message);
+    
+            // Send acknowledgment back to client
+            callback('messageSent event received');
+        });
+        
+        socket.on('messageStart', (message, callback) => {
+            console.log('Custom event messageStart received:', message);
+            // Broadcast the message to other clients or update the conversation thread
+            socket.broadcast.emit('messageStart', message);
+    
+            // Send acknowledgment back to client
+            callback('messageStart event received');
+        });
 
         socket.on('disconnect', () => {
             console.log(`User disconnected: ${socket.id}`);

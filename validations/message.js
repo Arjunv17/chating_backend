@@ -10,6 +10,7 @@ const objectId = Joi.string().custom((value, helpers) => {
 }, 'ObjectId validation');
 
 const messageSchema = Joi.object({
+    sender_id: objectId.required(),
     receiver_id: objectId.required(),
     message: Joi.string().required(),
 });
