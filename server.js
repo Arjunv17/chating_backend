@@ -21,7 +21,7 @@ const io = socketIo(server, {
 
 // Apply CORS middleware before other middleware
 const corsOptions = {
-  origin: 'http://localhost:5173',
+  origin: ['http://localhost:5173', "*"],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
   optionsSuccessStatus: 200
