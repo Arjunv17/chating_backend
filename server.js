@@ -21,7 +21,7 @@ const io = socketIo(server, {
 
 // Apply CORS middleware before other middleware
 const corsOptions = {
-  origin: ['http://localhost:5173', "*"],
+  origin: ['http://localhost:5173', ""],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true,
   optionsSuccessStatus: 200
@@ -40,12 +40,10 @@ app.get('/', (req, res) => {
 
 setupSocket(io); // Set up socket events
 
-// Exporting the server for Vercel
-module.exports = (req, res) => {
-  // Initialize database connection
-  dbConnection();
+const PORT = process.env.PORT || 5800;
+server.listen(PORT, () => {
+  dbConnection(); // Initialize database connection
+  console.log(`Server is running on port ${PORT}`);
+});
 
-  // Use the server to handle requests
-  return server(req, res);
-};
-// module.exports = { io };  // Export io for other files (to avoid circular dependency)
+module.exports = { io };  // Export io for other files (to avoid circular dependency)
