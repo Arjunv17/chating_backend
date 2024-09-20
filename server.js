@@ -48,4 +48,4 @@ module.exports = (req, res) => {
   // Use the server to handle requests
   return server(req, res);
 };
-module.exports = { io };  // Export io for other files (to avoid circular dependency)
+// module.exports = { io };  // Export io for other files (to avoid circular dependency)
