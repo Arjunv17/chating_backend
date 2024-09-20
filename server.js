@@ -40,10 +40,12 @@ app.get('/', (req, res) => {
 
 setupSocket(io); // Set up socket events
 
-const PORT = process.env.PORT || 5800;
-server.listen(PORT, () => {
-  dbConnection(); // Initialize database connection
-  console.log(`Server is running on port ${PORT}`);
-});
+// Exporting the server for Vercel
+module.exports = (req, res) => {
+  // Initialize database connection
+  dbConnection();
 
+  // Use the server to handle requests
+  return server(req, res);
+};
 module.exports = { io };  // Export io for other files (to avoid circular dependency)
