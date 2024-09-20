@@ -9,6 +9,15 @@ const userSchema = Joi.object({
     password: Joi.string().required(),
 
 })
+const userUpdateSchema = Joi.object({
+    first_name: Joi.string().alphanum().min(3).max(30).optional(),
+    last_name: Joi.string().alphanum().min(3).max(30).optional(),
+    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).optional(),
+    phone_number: Joi.string().pattern(/^\d{10}$/).optional(),
+    password: Joi.string().optional(),
+    status: Joi.string().optional(),
+
+})
 
 const emailPassSchema = Joi.object({
     email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
@@ -18,6 +27,9 @@ const emailPassSchema = Joi.object({
 const validateUser = (user) => {
     return userSchema.validate(user)
 }
+const validateUpdateUser = (user) => {
+    return userUpdateSchema.validate(user)
+}
 const validateEmailPass = (user) => {
     return emailPassSchema.validate(user)
 }
@@ -25,5 +37,6 @@ const validateEmailPass = (user) => {
 
 module.exports = {
     validateUser,
-    validateEmailPass
+    validateEmailPass,
+    validateUpdateUser
 }

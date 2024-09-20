@@ -1,6 +1,7 @@
-const  mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const { findOne } = require('../helpers/index'); // Ensure findOne function is correctly implemented
 const { Contact } = require('../models/contacts');
+const userModel = require('../models/user');
 const { successResponse, errorResponse } = require('../utils/response');
 const { validateContact } = require('../validations/contacts');
 
@@ -24,9 +25,13 @@ const save = async (req, res) => {
             return errorResponse(res, 400, 'Number already added in your list!!');
         }
 
+        // Find User By Number
+        const userExists = await findOne(userModel, { phone_number });
+       
+        console.log(userExists, "userExistsuserExistsuserExists")
         // Create new contact
-        const newContact = new Contact({ name, phone_number, user_id: userId });
-
+        const newContact = new Contact({ name, phone_number, user_id: userId, current_user_id: userExists ? userExists._id : null });
+        console.log(newContact, "new Contact")
         // Save response
         let saveRes = await newContact.save();
         return successResponse(res, 201, saveRes);
@@ -60,11 +65,11 @@ const getverify_contacts = async (req, res) => {
                         {
                             $project: {
                                 _id: 1,  // Exclude _id (optional)
-                                first_name: 1,  
+                                first_name: 1,
                                 last_name: 1,
-                                phone_number:1,
-                                profile_image:1,
-                                status:1
+                                phone_number: 1,
+                                profile_image: 1,
+                                status: 1
                             }
                         }
                     ]
@@ -85,7 +90,7 @@ const getverify_contacts = async (req, res) => {
                                 phone_number: 1,
                                 user_id: 1,
                                 name: 1,
-                                matchedUser:"$matchedUser"
+                                matchedUser: "$matchedUser"
                             }
                         }
                     ],

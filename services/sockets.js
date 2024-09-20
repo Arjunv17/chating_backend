@@ -34,9 +34,16 @@ const setupSocket = (io) => {
             // Send acknowledgment back to client
             callback('messageStart event received');
         });
-
-        socket.on('disconnect', () => {
-            console.log(`User disconnected: ${socket.id}`);
+        
+        socket.on('userStatusUpdate', async ({ userId, status }) => {
+            console.log(`User ${userId} status updated to ${status}`);
+            // Update the user's status in the database or in memory
+            // e.g., await User.findByIdAndUpdate(userId, { status });
+            io.emit('userStatusChange', { userId, status }); // Notify all clients of status change
+        });
+    
+        socket.on('disconnect', (message) => {
+            console.log(`User disconnected: ${socket.id}` , message);
             // Remove user from active users
             Object.keys(activeUsers).forEach((userId) => {
                 if (activeUsers[userId] === socket.id) {

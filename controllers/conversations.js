@@ -1,8 +1,9 @@
 // Add Models
-const mongoose  = require('mongoose');
+const mongoose = require('mongoose');
 const { findOne } = require('../helpers');
 const { Conversation } = require('../models/conversations');
 const { successResponse, errorResponse } = require('../utils/response');
+const { Contact } = require('../models/contacts');
 
 // Save Conversation 
 const save = async (req, res) => {
@@ -65,7 +66,7 @@ const getConversation = async (req, res) => {
                     actualReceiverId: {
                         $cond: [
                             { $eq: [{ $arrayElemAt: ['$participants', 0] }, new mongoose.Types.ObjectId(userId)] },
-                            { $arrayElemAt: ['$participants', 1] }, // If logged in user is the first participant, pick the second
+                            { $arrayElemAt: ['$participants', 1] }, // If logged-in user is the first participant, pick the second
                             { $arrayElemAt: ['$participants', 0] }  // Otherwise, pick the first
                         ]
                     }
@@ -85,12 +86,33 @@ const getConversation = async (req, res) => {
                     preserveNullAndEmptyArrays: true // Preserve conversations with no receiver details
                 }
             },
-            // Add lookup to get contact details by phone number
+            // Add lookup to get contact details by phone number and user_id
             {
                 $lookup: {
                     from: 'contacts', // Assuming the collection name is 'contacts'
-                    localField: 'receiverDetails.phone_number', // The phone number from receiver details
-                    foreignField: 'phone_number', // The phone number field in the contacts collection
+                    let: { receiverId: '$receiverDetails._id', receiverNum: '$receiverDetails.phone_number' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$current_user_id', new mongoose.Types.ObjectId(userId)] }, // Match current user saving the contact
+                                        { $eq: ['$user_id', '$$receiverId'] }, // Match receiver user ID
+                                        { $eq: ['$phone_number', '$$receiverNum'] }, // Match receiver phone number
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            $project: {
+                                _id: 1,
+                                name: 1, // Explicitly return the name field
+                                phone_number: 1,
+                                user_id: 1,
+                                current_user_id: 1
+                            }
+                        }
+                    ],
                     as: 'contactDetails'
                 }
             },
@@ -98,6 +120,17 @@ const getConversation = async (req, res) => {
                 $unwind: {
                     path: '$contactDetails',
                     preserveNullAndEmptyArrays: true // Preserve conversations with no matching contacts
+                }
+            },
+            {
+                $addFields: {
+                    contactDetails: {
+                        $cond: {
+                            if: { $gt: [{ $type: '$contactDetails' }, 'missing'] }, // If contactDetails array is not empty
+                            then: "$contactDetails", // Use contact details if available
+                            else: "$receiverDetails" // Otherwise, fall back to receiver details
+                        }
+                    }
                 }
             },
             {
@@ -121,12 +154,12 @@ const getConversation = async (req, res) => {
                         status: 1,
                         phone_number: 1
                     },
-                    // Add contact details in the response
                     contactDetails: {
                         _id: 1,
                         name: 1, // Assuming the contact has a 'name' field
                         phone_number: 1,
-                        user_id: 1
+                        user_id: 1,
+                        current_user_id: 1
                     }
                 }
             },
@@ -135,12 +168,19 @@ const getConversation = async (req, res) => {
             }
         ]);
 
+        // for (let i = 0; i < conversationData.length; i++) {
+        //     const element = conversationData[i];
+        //     let ContactName = await findOne(Contact, {phone_number:element.contactDetails.phone_number,  user_id: new mongoose.Types.ObjectId(userId)});
+        //     element.contactDetails?.name = ContactName.name 
+        // }
+
         return successResponse(res, 200, conversationData);
 
     } catch (error) {
         return errorResponse(res, 500, `Internal Server Error ${error.message}`);
     }
 };
+
 
 
 module.exports = {
