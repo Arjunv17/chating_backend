@@ -168,11 +168,11 @@ const getConversation = async (req, res) => {
             }
         ]);
 
-        // for (let i = 0; i < conversationData.length; i++) {
-        //     const element = conversationData[i];
-        //     let ContactName = await findOne(Contact, {phone_number:element.contactDetails.phone_number,  user_id: new mongoose.Types.ObjectId(userId)});
-        //     element.contactDetails?.name = ContactName.name 
-        // }
+        for (let i = 0; i < conversationData.length; i++) {
+            const element = conversationData[i];
+            let ContactName = await findOne(Contact, {phone_number:element.contactDetails.phone_number,  user_id: new mongoose.Types.ObjectId(userId)});
+            element['username'] = ContactName?.name 
+        }
 
         return successResponse(res, 200, conversationData);
 
